@@ -83,58 +83,48 @@ async function run() {
       res.send(result);
     });
 
-    //   get all product
-    app.get("/products", async (req, res) => {
-      const result = await productCollection.find().toArray();
+    //  task related api
+    app.get("/task", async (req, res) => {
+      const result = await taskCollection.find().toArray();
       res.send(result);
     });
-    //   insert product data
-    app.post("/products", async (req, res) => {
-      const products = req.body;
-      const result = await productCollection.insertOne(products);
+      
+    app.post("/task", verifyToken, async (req, res) => {
+        const task = req.body;
+        console.log(task);
+      const result = await taskCollection.insertOne(task);
       res.send(result);
     });
-
-    // single product
-    app.get("/products/:id", async (req, res) => {
+    app.get("/task/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
-      const result = await productCollection.findOne(query);
+      const result = await taskCollection.findOne(query);
       res.send(result);
     });
-
-    // update product
-    app.put("/products/:id", async (req, res) => {
+    app.patch("/task/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const data = req.body;
       const options = { upsert: true };
-
       const filter = { _id: new ObjectId(id) };
-
       const updatedData = {
         $set: {
-          name: data.name,
-          brandName: data.brandName,
-          productType: data.productType,
-          price: data.price,
-          sortDescription: data.sortDescription,
-          rating: data.rating,
-          photo: data.photo,
+          title: data.title,
+          deadlines: data.deadlines,
+          description: data.description,
+          priority: data.priority,
         },
       };
-      const result = await productCollection.updateOne(
+      const result = await taskCollection.updateOne(
         filter,
         updatedData,
         options
       );
       res.send(result);
     });
-
-    // product delete
-    app.delete("/product/:id", async (req, res) => {
+    app.delete("/task/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
-      const result = await productCartCollection.deleteOne(query);
+      const result = await taskCollection.deleteOne(query);
       res.send(result);
     });
 
