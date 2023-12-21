@@ -104,22 +104,32 @@ async function run() {
     app.patch("/task/:id", async (req, res) => {
       const id = req.params.id;
       const data = req.body;
-      const options = { upsert: true };
       const filter = { _id: new ObjectId(id) };
-      const updatedData = {
+      const update = {
         $set: {
           title: data.title,
           deadlines: data.deadlines,
           description: data.description,
           priority: data.priority,
+          status: data.status,
         },
       };
-      const result = await taskCollection.updateOne(
-        filter,
-        updatedData,
-        options
-      );
-      res.send(result);
+
+      try {
+        const result = await taskCollection.updateOne(filter, update);
+
+        if (result.matchedCount === 0) {
+          return res.status(404).json({ error: "Task not found" });
+        }
+
+        res.json({
+          message: "Task updated successfully",
+          updatedTask: { _id: id, ...data },
+        });
+      } catch (error) {
+        console.error("Error updating task:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+      }
     });
     app.delete("/task/:id", async (req, res) => {
         const id = req.params.id;
